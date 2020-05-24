@@ -138,7 +138,7 @@
                 <Image Height="32" Source="Icons/zoomin.png" />
             </Button>
             <Separator />
-            <Button Visibility="{Binding PrintButtonEtkin}" Command="{x:Static local:RoutedCommands.PdfViewerPrint}" ToolTip="En İyi Yazdırma Deneyimi İçin Evrakın İçeriğini Görüntüleyerek Yazdırın.">
+            <Button Visibility="{Binding PrintButtonEtkin}" Command="{x:Static local:RoutedCommands.PdfViewerPrint}" ToolTip="Yazdır">
                 <Button.CommandBindings>
                     <CommandBinding CanExecute="PdfViewerPrint_CanExecute" Command="{x:Static local:RoutedCommands.PdfViewerPrint}" Executed="PdfViewerPrint_Executed" />
                 </Button.CommandBindings>
