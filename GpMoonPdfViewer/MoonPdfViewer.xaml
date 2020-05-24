@@ -1,0 +1,217 @@
+﻿<UserControl x:Class="GpMoonPdfViewer.MoonPdfViewer" x:Name="userControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:GpMoonPdfViewer"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mpp="clr-namespace:MoonPdfLib;assembly=MoonPdfLib"
+    d:DataContext="{d:DesignInstance Type=local:MoonPdfViewer}"
+    d:DesignHeight="450" d:DesignWidth="800" UseLayoutRounding="True"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <local:PdfSayfaSayıToBitmapConverter x:Key="PdfSayfaSayıToBitmapConverter" />
+        <local:NullableToBooleanConverter x:Key="NullableToBooleanConverter" />
+        <ContextMenu x:Key="ContextMenuStyle">
+            <MenuItem Click="ZoomUp_Click" Header="YAKINLAŞTIR">
+                <MenuItem.Icon>
+                    <Image Height="24" Source="Icons/zoomin.png" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Click="ZoomDown_Click" Header="UZAKLAŞTIR">
+                <MenuItem.Icon>
+                    <Image Height="24" Source="Icons/zoomout.png" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator />
+            <MenuItem Click="BtnRotateLeft_Click" Header="SOLA DÖNDÜR">
+                <MenuItem.Icon>
+                    <Image Height="24" Source="Icons/rotateleft.png" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Click="BtnRotateRight_Click" Header="SAĞA DÖNDÜR">
+                <MenuItem.Icon>
+                    <Image Height="24" Source="Icons/rotateright.png" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator />
+            <MenuItem Click="ZoomWidth_Click" Header="GENİŞLİĞE SIĞDIR">
+                <MenuItem.Icon>
+                    <Image Height="24" Source="Icons/zoomwidth.png" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Click="ZoomHeight_Click" Header="YÜKSEKLİĞE SIĞDIR">
+                <MenuItem.Icon>
+                    <Image Height="24" RenderTransformOrigin="0.5,0.5" Source="Icons/zoomwidth.png">
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform />
+                                <SkewTransform />
+                                <RotateTransform Angle="90" />
+                                <TranslateTransform />
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator />
+            <MenuItem Visibility="{Binding PrintButtonEtkin}" Command="{x:Static local:RoutedCommands.PdfViewerPrint}" Header="YAZDIR">
+                <MenuItem.Icon>
+                    <Image Height="24" Source="Icons/print.png" />
+                </MenuItem.Icon>
+                <MenuItem.CommandBindings>
+                    <CommandBinding CanExecute="PdfViewerPrint_CanExecute" Command="{x:Static local:RoutedCommands.PdfViewerPrint}" Executed="PdfViewerPrint_Executed" />
+                </MenuItem.CommandBindings>
+            </MenuItem>
+        </ContextMenu>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <ToolBar Grid.Row="0" Background="Transparent" ToolBarTray.IsLocked="True">
+            <Button Visibility="{Binding AcKaydetButtonEtkin}" Command="{x:Static local:RoutedCommands.PdfViewerOpen}" ToolTip="Dosya Aç">
+                <Button.CommandBindings>
+                    <CommandBinding CanExecute="PdfViewerOpen_CanExecute" Command="{x:Static local:RoutedCommands.PdfViewerOpen}" Executed="PdfViewerOpen_Executed" />
+                </Button.CommandBindings>
+                <Image Source="Icons/open.png" />
+            </Button>
+            <Button Visibility="{Binding AcKaydetButtonEtkin}" Command="{x:Static local:RoutedCommands.PdfViewerSave}" ToolTip="Aktif Sayfayı Resim Kaydet">
+                <Image Source="Icons/save.png" />
+                <Button.CommandBindings>
+                    <CommandBinding CanExecute="PdfViewerSave_CanExecute" Command="{x:Static local:RoutedCommands.PdfViewerSave}" Executed="PdfViewerSave_Executed" />
+                </Button.CommandBindings>
+            </Button>
+            <Button Command="{x:Static local:RoutedCommands.PdfViewerBack}" ToolTip="Önceki Sayfa">
+                <Image Height="32" Source="Icons/previous.png" />
+                <Button.CommandBindings>
+                    <CommandBinding CanExecute="PdfViewerBack_CanExecute" Command="{x:Static local:RoutedCommands.PdfViewerBack}" Executed="PdfViewerBack_Executed" />
+                </Button.CommandBindings>
+            </Button>
+            <ComboBox IsReadOnly="True" ItemsSource="{Binding Sayfalar}" SelectedItem="{Binding ŞuankiSayfa, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <ComboBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ComboBox.ItemsPanel>
+            </ComboBox>
+            <Button Command="{x:Static local:RoutedCommands.PdfViewerNext}" ToolTip="Sonraki Sayfa">
+                <Image Height="32" Source="Icons/next.png" />
+                <Button.CommandBindings>
+                    <CommandBinding CanExecute="PdfViewerNext_CanExecute" Command="{x:Static local:RoutedCommands.PdfViewerNext}" Executed="PdfViewerNext_Executed" />
+                </Button.CommandBindings>
+            </Button>
+            <ToggleButton Checked="ToggleButton_Checked" Unchecked="ToggleButton_Unchecked">
+                <ToggleButton.Content>
+                    <Image Width="32" Source="Icons/ball.png" />
+                </ToggleButton.Content>
+            </ToggleButton>
+            <Separator />
+            <Button Click="ZoomWidth_Click" ToolTip="Genişliğe Sığdır">
+                <Image Height="32" Source="Icons/zoomwidth.png" />
+            </Button>
+            <Button Click="ZoomHeight_Click" ToolTip="Yüksekliğe Sığdır">
+                <Image Height="32" RenderTransformOrigin="0.5,0.5" Source="Icons/zoomwidth.png">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform />
+                            <SkewTransform />
+                            <RotateTransform Angle="90" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
+            </Button>
+            <Button Click="ZoomDown_Click" ToolTip="Uzaklaştır">
+                <Image Height="32" Source="Icons/zoomout.png" />
+            </Button>
+            <Slider Height="44"
+                VerticalAlignment="Center"
+                AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="2" LargeChange="1"
+                Maximum="{Binding ElementName=Mpp, Path=MaxZoomFactor}"
+                Minimum="{Binding ElementName=Mpp, Path=MinZoomFactor}"
+                Orientation="Vertical"
+                SmallChange="{Binding ElementName=Mpp, Path=ZoomStep}"
+                TickFrequency="10" ValueChanged="Slider_ValueChanged"
+                Value="{Binding Path=CustomZoomLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Click="ZoomUp_Click" ToolTip="Yakınlaştır">
+                <Image Height="32" Source="Icons/zoomin.png" />
+            </Button>
+            <Separator />
+            <Button Visibility="{Binding PrintButtonEtkin}" Command="{x:Static local:RoutedCommands.PdfViewerPrint}" ToolTip="En İyi Yazdırma Deneyimi İçin Evrakın İçeriğini Görüntüleyerek Yazdırın.">
+                <Button.CommandBindings>
+                    <CommandBinding CanExecute="PdfViewerPrint_CanExecute" Command="{x:Static local:RoutedCommands.PdfViewerPrint}" Executed="PdfViewerPrint_Executed" />
+                </Button.CommandBindings>
+                <Button.Content>
+                    <Image Source="Icons/print.png" />
+                </Button.Content>
+            </Button>
+            <UniformGrid Visibility="{Binding PrintButtonEtkin}"
+                Columns="2" Rows="2" ToolTip="Aktif Yazıcıdan Seçili Sayfa İçin Belirtilen Adet Kadar Yazdır.">
+                <UniformGrid.CommandBindings>
+                    <CommandBinding CanExecute="UniformGridPrint_CanExecute" Command="{x:Static local:RoutedCommands.UniformGridPdfPrint}" Executed="UniformGridPrint_Executed" />
+                </UniformGrid.CommandBindings>
+                <Button Content="1"
+                    Width="16"
+                    Command="{x:Static local:RoutedCommands.UniformGridPdfPrint}"
+                    Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" />
+                <Button Content="2"
+                    Width="16"
+                    Command="{x:Static local:RoutedCommands.UniformGridPdfPrint}"
+                    Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" />
+                <Button Content="3"
+                    Width="16"
+                    Command="{x:Static local:RoutedCommands.UniformGridPdfPrint}"
+                    Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" />
+                <Button Content="4"
+                    Width="16"
+                    Command="{x:Static local:RoutedCommands.UniformGridPdfPrint}"
+                    Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" />
+            </UniformGrid>
+            <Separator />
+            <Button Click="BtnRotateLeft_Click" ToolTip="Sola Döndür">
+                <Image Source="Icons/rotateleft.png" />
+            </Button>
+            <Button Click="BtnRotateRight_Click" ToolTip="Sağa Döndür">
+                <Image Source="Icons/rotateright.png" />
+            </Button>
+        </ToolBar>
+        <Grid Grid.Row="1">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="LbSayfalar"
+                Visibility="Collapsed"
+                ItemsSource="{Binding Sayfalar}"
+                SelectedItem="{Binding ŞuankiSayfa, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Image x:Name="Img"
+                            Width="59" Height="84"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor">
+                            <Image.Source>
+                                <MultiBinding Converter="{StaticResource PdfSayfaSayıToBitmapConverter}" Mode="OneWay">
+                                    <Binding ElementName="userControl" Mode="OneWay" Path="DataContext" />
+                                    <Binding ElementName="Img" Mode="OneWay" Path="DataContext" />
+                                </MultiBinding>
+                            </Image.Source>
+                        </Image>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <mpp:MoonPdfPanel x:Name="Mpp"
+                Grid.Column="1"
+                AllowDrop="True"
+                ContextMenu="{StaticResource ContextMenuStyle}"
+                Loaded="Mpp_Loaded" MinZoomFactor="0.25" PageMargin="0,2,4,2" PageRowDisplay="ContinuousPageRows"
+                PreviewMouseWheel="Mpp_PreviewMouseWheel" ScrollBar.Scroll="Mpp_Scroll" ViewType="SinglePage" />
+        </Grid>
+    </Grid>
+</UserControl>
