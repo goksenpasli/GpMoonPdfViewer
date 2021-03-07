@@ -1,6 +1,4 @@
-﻿using Microsoft.Win32;
-using MoonPdfLib.MuPdf;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing.Imaging;
@@ -13,6 +11,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Win32;
+using MoonPdfLib.MuPdf;
 
 
 namespace GpMoonPdfViewer
@@ -149,6 +149,7 @@ namespace GpMoonPdfViewer
             if (d is MoonPdfViewer pdfViewer && e.NewValue != null)
                 try
                 {
+                    if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
                     using (var Ms = new MemoryStream(e.NewValue as byte[], false))
                     {
                         pdfViewer.Mpp?.Open(new MemorySource(Ms.ToArray()));
@@ -166,6 +167,7 @@ namespace GpMoonPdfViewer
             if (d is MoonPdfViewer pdfViewer && e.NewValue != null)
                 try
                 {
+                    if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
                     var uriString = (string)e.NewValue;
                     pdfViewer.Mpp?.Open(new FileSource(uriString));
                     pdfViewer.Sayfalar = new ObservableCollection<int>(Enumerable.Range(1, pdfViewer.Mpp.TotalPages));
@@ -184,6 +186,7 @@ namespace GpMoonPdfViewer
         {
             try
             {
+                if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
                 if (Mpp?.CurrentSource != null)
                 {
                     Mpp?.ZoomToWidth();
