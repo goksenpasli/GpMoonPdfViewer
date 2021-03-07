@@ -49,12 +49,27 @@ namespace GpMoonPdfViewer
 
         private int şuankiSayfa;
         private int toplamSayfa;
+        private bool controlsActive;
 
         public MoonPdfViewer()
         {
 
             InitializeComponent();
             DataContext = this;
+        }
+
+        public bool ControlsActive
+        {
+            get => controlsActive;
+
+            set
+            {
+                if (controlsActive != value)
+                {
+                    controlsActive = value;
+                    OnPropertyChanged(nameof(ControlsActive));
+                }
+            }
         }
 
         public Visibility AcKaydetButtonEtkin
@@ -178,9 +193,9 @@ namespace GpMoonPdfViewer
                 catch (Exception ex) { MessageBox.Show(ex.Message, "EBYS", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
 
-        private void BtnRotateLeft_Click(object sender, RoutedEventArgs e) => Mpp.RotateLeft();
+        private void BtnRotateLeft_Click(object sender, RoutedEventArgs e) => Mpp?.RotateLeft();
 
-        private void BtnRotateRight_Click(object sender, RoutedEventArgs e) => Mpp.RotateRight();
+        private void BtnRotateRight_Click(object sender, RoutedEventArgs e) => Mpp?.RotateRight();
 
         private void Mpp_Loaded(object sender, RoutedEventArgs e)
         {
@@ -189,12 +204,18 @@ namespace GpMoonPdfViewer
                 if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
                 if (Mpp?.CurrentSource != null)
                 {
+                    ControlsActive = true;
                     Mpp?.ZoomToWidth();
                     CustomZoomLevel = Mpp.CurrentZoom;
                     ToplamSayfa = Mpp.TotalPages;
                     Sayfalar = new ObservableCollection<int>(Enumerable.Range(1, ToplamSayfa));
                     ŞuankiSayfa = 1;
                 }
+                else
+                {
+                    ControlsActive = false;
+                }
+                
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "EBYS", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
@@ -220,7 +241,7 @@ namespace GpMoonPdfViewer
             }
         }
 
-        private void PdfViewerSave_CanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = true;
+        private void PdfViewerSave_CanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = Mpp?.CurrentSource != null;
 
         private void PdfViewerSave_Executed(object sender, ExecutedRoutedEventArgs e)
         {
@@ -228,7 +249,7 @@ namespace GpMoonPdfViewer
             if (saveFileDialog.ShowDialog() == true) File.WriteAllBytes(saveFileDialog.FileName, this.PdfExtractSmallPreviewImage(ŞuankiSayfa, 2).ToTiffJpegByteArray(ExtensionMethods.Format.Jpg));
         }
 
-        private void PdfViewerPrint_CanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = true;
+        private void PdfViewerPrint_CanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = Mpp?.CurrentSource != null;
 
         private void PdfViewerPrint_Executed(object sender, ExecutedRoutedEventArgs e)
         {
@@ -236,7 +257,7 @@ namespace GpMoonPdfViewer
             {
                 PageRangeSelection = PageRangeSelection.AllPages,
                 UserPageRangeEnabled = true,
-                MaxPage = (uint)Mpp.TotalPages,
+                MaxPage = (uint)Mpp?.TotalPages,
                 MinPage = 1
             };
             if (pd.ShowDialog() == true)
@@ -257,7 +278,7 @@ namespace GpMoonPdfViewer
 
                 for (var i = başlangıç; i <= bitiş; i++)
                 {
-                    using (var bmp = MuPdfWrapper.ExtractPage(Mpp.CurrentSource, i, 4))
+                    using (var bmp = MuPdfWrapper.ExtractPage(Mpp?.CurrentSource, i, 4))
                     {
                         using (var dc = dv.RenderOpen())
                         {
@@ -279,7 +300,7 @@ namespace GpMoonPdfViewer
             if (Mpp?.CurrentSource != null) Mpp?.Zoom(CustomZoomLevel);
         }
 
-        private void UniformGridPrint_CanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = true;
+        private void UniformGridPrint_CanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = Mpp?.CurrentSource != null;
 
         private void UniformGridPrint_Executed(object sender, ExecutedRoutedEventArgs e)
         {
@@ -322,7 +343,7 @@ namespace GpMoonPdfViewer
 
         private void ZoomWidth_Click(object sender, RoutedEventArgs e)
         {
-            Mpp.ZoomToWidth();
+            Mpp?.ZoomToWidth();
             CustomZoomLevel = Mpp.CurrentZoom;
         }
 
@@ -330,7 +351,7 @@ namespace GpMoonPdfViewer
 
         private void PdfViewerBack_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Mpp.GotoPreviousPage();
+            Mpp?.GotoPreviousPage();
             ŞuankiSayfa = Mpp.GetCurrentPageNumber() - 1;
         }
 
@@ -338,7 +359,7 @@ namespace GpMoonPdfViewer
 
         private void PdfViewerNext_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Mpp.GotoNextPage();
+            Mpp?.GotoNextPage();
             ŞuankiSayfa = Mpp.GetCurrentPageNumber() + 1;
         }
 
