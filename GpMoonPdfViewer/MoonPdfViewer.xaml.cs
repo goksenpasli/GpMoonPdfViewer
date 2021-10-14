@@ -211,10 +211,10 @@ namespace GpMoonPdfViewer
                     Sayfalar = new ObservableCollection<int>(Enumerable.Range(1, ToplamSayfa));
                     ŞuankiSayfa = 1;
                 }
-                else
-                {
-                    ControlsActive = false;
-                }
+                //else
+                //{
+                //    ControlsActive = false;
+                //}
                 
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "EBYS", MessageBoxButton.OK, MessageBoxImage.Error); }
